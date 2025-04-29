@@ -1,7 +1,6 @@
 const { Client, GatewayIntentBits, PermissionsBitField } = require('discord.js');
 const { joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus, VoiceConnectionStatus, entersState } = require('@discordjs/voice');
-const dotenv = require('dotenv')
-dotenv.config()
+require("dotenv").config();
 
 const client = new Client({
     intents: [
@@ -12,7 +11,7 @@ const client = new Client({
     ]
 });
 
-const TOKEN = process.env.TOKEN; // Replace with your new token after resetting
+const TOKEN = process.env.TOKEN;// Replace with your new token after resetting
 const VOICE_CHANNEL_ID = process.env.VOICE_CHANNEL_ID; // ID of the voice or Stage channel
 const STREAM_URL = 'https://stream.radiojar.com/8s5u5tpdtwzuv'; // Stream URL
 
