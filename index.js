@@ -78,7 +78,7 @@ function setupAudioPlayer(connection) {
     connection.subscribe(player);
 
     player.on(AudioPlayerStatus.Idle, () => {
-        console.log('🔁 Restarting the stream...');
+        // console.log('🔁 Restarting the stream...');
         resource = createAudioResource(STREAM_URL, { inlineVolume: true });
         resource.volume.setVolume(currentVolume);
         player.play(resource);
