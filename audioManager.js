@@ -50,7 +50,7 @@ class AudioManager {
     setupPlayerListeners(guildId, player) {
         player.on(AudioPlayerStatus.Idle, () => {
             const currentStream = this.currentStreams.get(guildId);
-            console.log(`[AudioManager] Player idle in guild ${guildId}. Current stream:`, currentStream);
+            // console.log(`[AudioManager] Player idle in guild ${guildId}. Current stream:`, currentStream);
             if (currentStream && currentStream.type === 'radio') {
                 console.log(`[AudioManager] Replaying radio in guild ${guildId}`);
                 this.playRadio(guildId, currentStream.url);
@@ -247,15 +247,15 @@ class AudioManager {
                 const resource = player.state.resource;
                 if (resource.volume) {
                     resource.volume.setVolume(this.volume);
-                    console.log(`[AudioManager] Volume set to ${Math.round(this.volume * 100)}% in guild ${guildId}`);
+                    // console.log(`[AudioManager] Volume set to ${Math.round(this.volume * 100)}% in guild ${guildId}`);
                 } else {
-                    console.log(`[AudioManager] No volume control available for current resource in guild ${guildId}`);
+                    // console.log(`[AudioManager] No volume control available for current resource in guild ${guildId}`);
                 }
             } else {
-                console.log(`[AudioManager] No active player or resource in guild ${guildId} to apply volume`);
+                // console.log(`[AudioManager] No active player or resource in guild ${guildId} to apply volume`);
             }
 
-            console.log(`[AudioManager] Volume changed to ${Math.round(this.volume * 100)}% in guild ${guildId}`);
+            // console.log(`[AudioManager] Volume changed to ${Math.round(this.volume * 100)}% in guild ${guildId}`);
             return true;
         } catch (error) {
             console.error(`[AudioManager] Error setting volume in guild ${guildId}:`, error);
