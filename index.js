@@ -54,6 +54,12 @@ async function joinAndPlay(guildData, client) {
         const channel = guild.channels.cache.get(guildData.voiceChannelId);
         if (!channel || channel.type !== 2) return; // 2 = voice channel
 
+        const permissions = channel.permissionsFor(guild.members.me);
+        if (!permissions.has(PermissionsBitField.Flags.Connect) || !permissions.has(PermissionsBitField.Flags.Speak)) {
+            console.error(`❌ Bot lacks Connect/Speak permissions in channel ${channel.id} (guild ${guild.id})`);
+            return;
+        }
+
         // استخدام مدير الصوت الجديد
         await audioManager.joinVoiceChannel(guildData.guildId, channel.id, guild);
         
