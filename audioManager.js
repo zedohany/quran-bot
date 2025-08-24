@@ -88,19 +88,26 @@ class AudioManager {
             const player = this.players.get(guildId);
             if (!player) throw new Error(`[AudioManager] No player found for guild ${guildId}`);
 
-            // شغل FFmpeg مع خيارات إعادة الاتصال
+            // Enhanced FFmpeg command with Opus encoding
             const ffmpeg = spawn('ffmpeg', [
                 '-reconnect', '1',
                 '-reconnect_streamed', '1',
                 '-reconnect_delay_max', '5',
                 '-i', streamUrl,
                 '-analyzeduration', '0',
-                '-loglevel', '0',
-                '-f', 's16le',
+                '-loglevel', 'error', // Log errors only
+                '-acodec', 'libopus',
+                '-f', 'opus',
                 '-ar', '48000',
                 '-ac', '2',
+                '-b:a', '128k', // Set bitrate
                 'pipe:1'
-            ], { stdio: ['ignore', 'pipe', 'ignore'] });
+            ], { stdio: ['ignore', 'pipe', 'pipe'] });
+
+            // Log FFmpeg errors
+            ffmpeg.stderr.on('data', (data) => {
+                console.error(`[FFmpeg] Error in guild ${guildId}: ${data.toString()}`);
+            });
 
             const resource = createAudioResource(ffmpeg.stdout, {
                 inlineVolume: true
@@ -110,7 +117,7 @@ class AudioManager {
             player.play(resource);
             this.currentStreams.set(guildId, { type: 'radio', url: streamUrl });
 
-            console.log(`[AudioManager] Radio started in guild ${guildId}`);
+            console.log(`[AudioManager] Radio started in guild ${guildId} with URL: ${streamUrl}`);
             return true;
         } catch (error) {
             console.error(`[AudioManager] Error playing radio in guild ${guildId}:`, error);
@@ -132,12 +139,14 @@ class AudioManager {
                 '-reconnect_delay_max', '5',
                 '-i', audioUrl,
                 '-analyzeduration', '0',
-                '-loglevel', '0',
-                '-f', 's16le',
+                '-loglevel', 'error', // Log errors only
+                '-acodec', 'libopus',
+                '-f', 'opus',
                 '-ar', '48000',
                 '-ac', '2',
+                '-b:a', '128k', // Set bitrate
                 'pipe:1'
-            ], { stdio: ['ignore', 'pipe', 'ignore'] });
+            ], { stdio: ['ignore', 'pipe', 'pipe'] });
 
             const resource = createAudioResource(ffmpeg.stdout, {
                 inlineVolume: true
