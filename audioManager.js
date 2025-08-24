@@ -2,6 +2,7 @@ const {
     joinVoiceChannel, createAudioPlayer, createAudioResource, AudioPlayerStatus,
     VoiceConnectionStatus, entersState, getVoiceConnection
 } = require('@discordjs/voice');
+const { spawn } = require('child_process');
 
 class AudioManager {
     constructor() {
@@ -85,21 +86,29 @@ class AudioManager {
     async playRadio(guildId, streamUrl) {
         try {
             const player = this.players.get(guildId);
-            if (!player) {
-                throw new Error(`[AudioManager] No player found for guild ${guildId}`);
-            }
+            if (!player) throw new Error(`[AudioManager] No player found for guild ${guildId}`);
 
-            const resource = createAudioResource(streamUrl, { 
-                inlineVolume: true,
-                inputType: 'arbitrary'
+            // شغل FFmpeg مع خيارات إعادة الاتصال
+            const ffmpeg = spawn('ffmpeg', [
+                '-reconnect', '1',
+                '-reconnect_streamed', '1',
+                '-reconnect_delay_max', '5',
+                '-i', streamUrl,
+                '-analyzeduration', '0',
+                '-loglevel', '0',
+                '-f', 's16le',
+                '-ar', '48000',
+                '-ac', '2',
+                'pipe:1'
+            ], { stdio: ['ignore', 'pipe', 'ignore'] });
+
+            const resource = createAudioResource(ffmpeg.stdout, {
+                inlineVolume: true
             });
             resource.volume.setVolume(this.volume);
 
             player.play(resource);
-            this.currentStreams.set(guildId, {
-                type: 'radio',
-                url: streamUrl
-            });
+            this.currentStreams.set(guildId, { type: 'radio', url: streamUrl });
 
             console.log(`[AudioManager] Radio started in guild ${guildId}`);
             return true;
@@ -109,18 +118,29 @@ class AudioManager {
         }
     }
 
+
     async playQuran(guildId, audioUrl, surahName, reciterName) {
         try {
             const player = this.players.get(guildId);
-            if (!player) {
-                throw new Error(`[AudioManager] No player found for guild ${guildId}`);
-            }
+            if (!player) throw new Error(`[AudioManager] No player found for guild ${guildId}`);
 
             player.stop();
 
-            const resource = createAudioResource(audioUrl, { 
-                inlineVolume: true,
-                inputType: 'arbitrary'
+            const ffmpeg = spawn('ffmpeg', [
+                '-reconnect', '1',
+                '-reconnect_streamed', '1',
+                '-reconnect_delay_max', '5',
+                '-i', audioUrl,
+                '-analyzeduration', '0',
+                '-loglevel', '0',
+                '-f', 's16le',
+                '-ar', '48000',
+                '-ac', '2',
+                'pipe:1'
+            ], { stdio: ['ignore', 'pipe', 'ignore'] });
+
+            const resource = createAudioResource(ffmpeg.stdout, {
+                inlineVolume: true
             });
             resource.volume.setVolume(this.volume);
 
@@ -128,8 +148,8 @@ class AudioManager {
             this.currentStreams.set(guildId, {
                 type: 'quran',
                 url: audioUrl,
-                surahName: surahName,
-                reciterName: reciterName
+                surahName,
+                reciterName
             });
 
             console.log(`[AudioManager] Playing ${surahName} by ${reciterName} in guild ${guildId}`);
@@ -147,7 +167,7 @@ class AudioManager {
                 console.log(`[AudioManager] No player found in guild ${guildId}`);
                 return false;
             }
-            
+
             console.log(`[AudioManager] Attempting to pause audio in guild ${guildId}. Current state: ${player.state.status}`);
             if (player.state.status === AudioPlayerStatus.Playing) {
                 player.pause();
@@ -170,7 +190,7 @@ class AudioManager {
                 console.log(`[AudioManager] No player found in guild ${guildId}`);
                 return false;
             }
-            
+
             console.log(`[AudioManager] Attempting to resume audio in guild ${guildId}. Current state: ${player.state.status}`);
             if (player.state.status === AudioPlayerStatus.Paused) {
                 player.unpause();
@@ -193,7 +213,7 @@ class AudioManager {
                 console.log(`[AudioManager] No player found in guild ${guildId}`);
                 return false;
             }
-            
+
             console.log(`[AudioManager] Attempting to stop audio in guild ${guildId}. Current state: ${player.state.status}`);
             if (player.state.status === AudioPlayerStatus.Playing || player.state.status === AudioPlayerStatus.Paused) {
                 player.stop();
@@ -225,7 +245,7 @@ class AudioManager {
             } else {
                 console.log(`[AudioManager] No active player or resource in guild ${guildId} to apply volume`);
             }
-            
+
             console.log(`[AudioManager] Volume changed to ${Math.round(this.volume * 100)}% in guild ${guildId}`);
             return true;
         } catch (error) {
