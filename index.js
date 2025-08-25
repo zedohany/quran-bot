@@ -58,13 +58,10 @@ async function joinAndPlay(guildData, client) {
             return;
         }
 
-        // استخدام مدير الصوت الجديد
         await audioManager.joinVoiceChannel(guildData.guildId, channel.id, guild);
         
-        // تشغيل الراديو تلقائياً
         await audioManager.playRadio(guildData.guildId, STREAM_URL);
         
-        console.log(`✅ تم الانضمام وتشغيل الراديو في السيرفر ${guildData.guildId}`);
     } catch (error) {
         console.error('❌ خطأ في الانضمام وتشغيل الراديو:', error);
     }
